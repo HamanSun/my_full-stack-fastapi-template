@@ -30,7 +30,7 @@ def update_user(*, session: Session, db_user: User, user_in: UserUpdate) -> Any:
     session.refresh(db_user)
     return db_user
 
-
+# *：表示该函数中的参数必须以关键字参数的形式传递，即在调用函数时必须显式地指定参数名。
 def get_user_by_email(*, session: Session, email: str) -> User | None:
     statement = select(User).where(User.email == email)
     session_user = session.exec(statement).first()

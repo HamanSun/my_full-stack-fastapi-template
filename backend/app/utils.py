@@ -11,10 +11,19 @@ from jwt.exceptions import InvalidTokenError
 
 from app.core import security
 from app.core.config import settings
-
-logging.basicConfig(level=logging.INFO)
+# 1. 配置全局日志基础
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"  # 日志格式
+                    )
 logger = logging.getLogger(__name__)
+# 2. 仅开启 SQLAlchemy 引擎日志（SQLModel 底层依赖）
+sql_logger = logging.getLogger("sqlalchemy.engine")
+sql_logger.setLevel(logging.INFO)  # INFO 级仅输出 SQL 语句，DEBUG 级包含参数/耗时
+sql_logger.propagate = False  # 避免重复输出
 
+# 3. 屏蔽冗余日志（可选）
+logging.getLogger("sqlalchemy.pool").setLevel(logging.WARNING)  # 屏蔽连接池日志
+logging.getLogger("sqlalchemy.dialects").setLevel(logging.WARNING)  # 屏蔽方言日志
 
 @dataclass
 class EmailData:

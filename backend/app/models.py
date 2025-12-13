@@ -1,5 +1,7 @@
 import uuid
 
+from datetime import datetime
+from typing import List, Optional
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -111,3 +113,25 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=128)
+
+# 订单名单
+class OrderItem(SQLModel, table=True):
+    __tablename__ = "orderitem"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, sa_column_kwargs={"comment": "主键"})
+    order_id: uuid.UUID = Field(nullable=False, max_length=100, sa_column_kwargs={"comment": "订单号，对应order.id"}, foreign_key="order.id", ondelete="CASCADE")
+    product_no: str = Field(nullable=False, max_length=100, sa_column_kwargs={"comment": "商品编号"})
+    product_name: str | None = Field(default=None, max_length=255, sa_column_kwargs={"comment": "商品名称"})
+    count: int = Field(default=1, ge=1, sa_column_kwargs={"comment": "购买数量"})
+    unit_price: float = Field(default=0.0, ge=0.0, sa_column_kwargs={"comment": "商品单价"})
+    order: Optional["Order"] = Relationship(back_populates="order_items")
+
+# 订单
+class Order(SQLModel, table=True):
+    __tablename__ = "order"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, sa_column_kwargs={"comment": "主键"})
+    order_no: str = Field(unique=True,index=True,max_length=100, sa_column_kwargs={"comment": "订单号"})
+    total_amount: float =Field(default=0.0, ge=0.0, sa_column_kwargs={"comment": "总金额"})
+    created_at: datetime = Field(default_factory=datetime.now, sa_column_kwargs={"comment": "下单时间"})
+    owner_id: uuid.UUID = Field(nullable=False,sa_column_kwargs={"comment": "下单人ID，对应user.id"})
+    order_items: List[OrderItem] = Relationship(back_populates="order")
+
